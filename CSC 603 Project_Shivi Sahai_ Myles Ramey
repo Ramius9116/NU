@@ -1,0 +1,882 @@
+Person.java
+package phonebookapplication;
+/**
+* This class maintains the Person information Apart from the Person's First
+* Name, Last Name, Home Phone, Work Phone & Mobile Phone information, I also
+* created a unique ID which gets generated while the Person is created. This is
+* a unique ID which can be used later for fetching Person's information or to
+* perform other functions.
+*
+* @author Shivi Sahai
+*/
+
+public class Person {
+private String firstname;
+private String lastname;
+private String homephone;
+private String workphone;
+private String mobilephone;
+private String id;
+public Person(String firstname, String lastname, String homephone, String workphone, String mobilephone, String id) {
+this.firstname = firstname;
+this.lastname = lastname;
+this.homephone = homephone;
+this.workphone = workphone;
+this.mobilephone = mobilephone;
+this.id = id;
+}
+public Person() {
+}
+public String getFirstname() {
+return firstname;
+}
+public void setFirstname(String firstname) {
+this.firstname = firstname;
+}
+public String getLastname() {
+return lastname;
+}
+public void setLastname(String lastname) {
+this.lastname = lastname;
+}
+public String getHomephone() {
+return homephone;
+}
+public void setHomephone(String homephone) {
+this.homephone = homephone;
+}
+3
+public String getWorkphone() {
+return workphone;
+}
+public void setWorkphone(String workphone) {
+this.workphone = workphone;
+}
+public String getMobilephone() {
+return mobilephone;
+}
+public void setMobilephone(String mobilephone) {
+this.mobilephone = mobilephone;
+}
+public String getId() {
+return id;
+}
+public void setId(String id) {
+this.id = id;
+}
+}
+
+PhoneBookApplication.java
+package phonebookapplication;
+import java.io.IOException;
+import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.scene.layout.AnchorPane;
+import javafx.stage.Stage;
+import static javafx.application.Application.launch;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.scene.control.Alert;
+import javafx.stage.Modality;
+import phonebookapplication.controller.NewRecordController;
+import phonebookapplication.controller.PhoneBookAppController;
+import phonebookapplication.controller.UpdateRecordController;
+/**
+*
+* @author Shivi Sahai
+*/
+public class PhoneBookApplication extends Application {
+private AnchorPane pane;
+private ObservableList<Person> personData = FXCollections.observableArrayList();
+private int listSize;
+private Stage stage;
+//Stage Getter
+public Stage getStage() {
+return stage;
+}
+//Stage Setter
+public void setStage(Stage stage) {
+this.stage = stage;
+}
+//personData Getter
+public ObservableList<Person> getPersonData() {
+return personData;
+}
+//personData Setter
+public void setPersonData(ObservableList<Person> personData) {
+this.personData = personData;
+}
+//listSize Getter
+public int getListSize() {
+return listSize;
+}
+//listSize Setter
+public void setListSize(int listSize) {
+this.listSize = listSize;
+}
+@Override
+public void start(Stage stage) throws Exception {
+this.stage = stage;
+try {
+showApp();
+} catch (IOException e) {
+}
+}
+//Display the stage i.e. the Main Page of the Phone Book Application.
+public void showApp() throws IOException {
+try {
+FXMLLoader loader = new FXMLLoader();
+loader.setLocation(PhoneBookApplication.class.getResource("view/PhoneBookHome.fxml"));
+pane = loader.load();
+Scene scene = new Scene(pane);
+PhoneBookAppController pbController = loader.getController();
+pbController.setMainApp(this);
+stage.setScene(scene);
+stage.setTitle("Phone Book");
+stage.show();
+} //Shows Alert in case of IO Exception.
+catch (IOException e) {
+Alert alert = new Alert(Alert.AlertType.INFORMATION);
+alert.setTitle("Information");
+alert.setHeaderText("Something went wrong. Please try again.");
+alert.showAndWait();
+} //Shows Alert in case of Exception.
+catch (Exception exception) {
+Alert alert = new Alert(Alert.AlertType.INFORMATION);
+alert.setTitle("Information");
+alert.setHeaderText("Something went wrong. Please try again.");
+alert.showAndWait();
+}
+}
+//This method loads and displays the Add person dialog box.
+public boolean showPersonAddDialog(Person person) {
+try {
+// Load the fxml file and create a new stage for the popup dialog.
+FXMLLoader loader = new FXMLLoader();
+loader.setLocation(PhoneBookApplication.class.getResource("view/NewRecord.fxml"));
+AnchorPane page = (AnchorPane) loader.load();
+// Create the dialog Stage.
+Stage dialogStage = new Stage();
+dialogStage.initModality(Modality.WINDOW_MODAL);
+dialogStage.initOwner(stage);
+Scene scene = new Scene(page);
+dialogStage.setScene(scene);
+dialogStage.setTitle("Add New Phone Book Record");
+
+// Set the person into the controller.
+NewRecordController controller = loader.getController();
+controller.setDialogStage(dialogStage);
+controller.setPerson(person);
+// Show the dialog and wait until the user closes it
+dialogStage.showAndWait();
+return controller.isOkClicked();
+} catch (IOException e) {
+return false;
+}
+}
+//This method loads and displays the Modify person dialog box.
+public boolean showPersonModifyDialog(Person person) {
+try {
+// Load the fxml file and create a new stage for the popup dialog.
+FXMLLoader loader = new FXMLLoader();
+loader.setLocation(PhoneBookApplication.class.getResource("view/UpdateRecord.fxml"));
+AnchorPane page = (AnchorPane) loader.load();
+// Create the dialog Stage.
+Stage dialogStage = new Stage();
+dialogStage.initModality(Modality.WINDOW_MODAL);
+dialogStage.initOwner(stage);
+Scene scene = new Scene(page);
+dialogStage.setScene(scene);
+dialogStage.setTitle("Update Selected Phone Book Record");
+// Set the person into the controller.
+UpdateRecordController controller = loader.getController();
+controller.setDialogStage(dialogStage);
+controller.setPerson(person);
+controller.showPersonDetails(person);
+// Show the dialog and wait until the user closes it
+dialogStage.showAndWait();
+return controller.isOkClicked();
+} catch (IOException e) {
+return false;
+}
+}
+/**
+* @param args the command line arguments
+*/
+public static void main(String[] args) {
+launch(args);
+}
+//Sets the selected person in the tableview, in personData
+public void setPersonInPersonData(int selected_index, Person modifyPerson) {
+this.personData.set(selected_index, modifyPerson);
+}
+}
+
+PhoneBookAppController.java
+package phonebookapplication.controller;
+import java.net.URL;
+import java.util.Optional;
+import java.util.ResourceBundle;
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonBar.ButtonData;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
+import phonebookapplication.Person;
+import phonebookapplication.PhoneBookApplication;
+/**
+* FXML Controller class
+*
+* @author Shivi Sahai
+*/
+public class PhoneBookAppController implements Initializable {
+
+@FXML
+private MenuBar menubar;
+@FXML
+private Menu editMenu;
+@FXML
+private MenuItem addMenu;
+@FXML
+private Label recordCount;
+@FXML
+private TableView<Person> tableView;
+@FXML
+private TableColumn<Person, String> colLastname;
+@FXML
+private TableColumn<Person, String> colFirstName;
+@FXML
+private TableColumn<Person, String> colHomePhone;
+@FXML
+private TableColumn<Person, String> colWorkPhone;
+@FXML
+private TableColumn<Person, String> colMobilePhone;
+@FXML
+private TableColumn<Person, String> colID;
+private PhoneBookApplication phoneBook;
+private int recordListCount;
+ObservableList<Person> observablePersonList = FXCollections.observableArrayList();
+//ObservableList<Person> Getter
+public ObservableList<Person> getObservablePersonList() {
+return this.observablePersonList;
+}
+//ObservableList<Person> Setter
+public void setObservablePersonList(ObservableList<Person> observablePersonList) {
+this.observablePersonList = observablePersonList;
+}
+//Table View Getter
+public TableView<Person> getTableView() {
+return tableView;
+}
+/**
+* Initializes the controller class.
+*
+* @param url
+* @param rb
+*/
+@Override
+@FXML
+public void initialize(URL url, ResourceBundle rb) {
+// TODO
+showTableData();
+}
+//This method is called when user clicks on the Edit-->Add menu item.
+@FXML
+private void handleNewPerson(ActionEvent event) {
+Person tempPerson = new Person();
+boolean okClicked = phoneBook.showPersonAddDialog(tempPerson);
+if (okClicked) {
+phoneBook.getPersonData().add(tempPerson);
+//recordListCount holds the count of the persons in the personData list
+recordListCount = phoneBook.getPersonData().size();
+phoneBook.setListSize(recordListCount);
+recordCount.setText("Number of phone book records: " + recordListCount);
+}
+}
+//Adds this person to the obervablePersonList
+public void addToList(Person person) {
+this.observablePersonList.add(person);
+showTableData();
+}
+//Shows the Person data in the table view from the list.
+public void showTableData() {
+colFirstName.setCellValueFactory(new PropertyValueFactory<>("firstname"));
+colLastname.setCellValueFactory(new PropertyValueFactory<>("lastname"));
+colHomePhone.setCellValueFactory(new PropertyValueFactory<>("homephone"));
+colWorkPhone.setCellValueFactory(new PropertyValueFactory<>("workphone"));
+colMobilePhone.setCellValueFactory(new PropertyValueFactory<>("mobilephone"));
+colID.setCellValueFactory(new PropertyValueFactory<>("id"));
+tableView.setItems(getObservablePersonList());
+}
+//Gets the phone book list size and sets on the Main Phoe book page
+public void setMainApp(PhoneBookApplication phoneBook) {
+this.phoneBook = phoneBook;
+this.recordListCount = phoneBook.getListSize();
+// Add observable list data to the table
+tableView.setItems(phoneBook.getPersonData());
+recordCount.setText("Number of phone book records: " + recordListCount);
+}
+//This method is called when user clicks on the Edit-->Modify menu item.
+@FXML
+private void updateRecord(ActionEvent event) {
+//Gets the selected person from the table view
+Person modifyPerson = tableView.getSelectionModel().getSelectedItem();
+//Gets the index of the selected person in the table view
+int selected_index = tableView.getSelectionModel().getSelectedIndex();
+//If a person is selected in the table view, the user is allowed to modify that person.
+if (modifyPerson != null) {
+boolean okClicked = phoneBook.showPersonModifyDialog(modifyPerson);
+if (okClicked) {
+phoneBook.setPersonInPersonData(selected_index, modifyPerson);
+recordListCount = phoneBook.getPersonData().size();
+phoneBook.setListSize(recordListCount);
+recordCount.setText("Number of phone book records: " + recordListCount);
+}
+//If a person is not selected in the table view and user tries to modify it, a Warning alert box is displayed.
+} else {
+Alert alert = new Alert(AlertType.WARNING);
+alert.initOwner(phoneBook.getStage());
+alert.setTitle("No Selection");
+alert.setHeaderText("No Person Selected");
+alert.setContentText("Please select a person in the table.");
+alert.showAndWait();
+}
+}
+//This method is called when user clicks on the Edit-->Delete menu item.
+@FXML
+public void deleteRecord() {
+//Gets the selecetd person from the table view
+Person selectedRecord = tableView.getSelectionModel().getSelectedItem();
+//If a perosn is selected in the tableview and user clicks on the Edit-->Delete menu item, a Confirmation Alert box is displayed.
+if (selectedRecord != null) {
+Alert alert = new Alert(AlertType.CONFIRMATION);
+alert.setTitle("Confirmation");
+alert.setHeaderText("Would You Like To Delete the selected record?");
+alert.setContentText("Click OK to confirm or Cancel to exit.");
+ButtonType okButton = new ButtonType("OK");
+ButtonType cancelButton = new ButtonType("Cancel", ButtonData.CANCEL_CLOSE);
+alert.getButtonTypes().setAll(okButton, cancelButton);
+Optional<ButtonType> result = alert.showAndWait();
+//If user confirms to delete the selected person record and clicks on OK button on the alert box, record is deleted.
+if (result.get() == okButton) {
+tableView.getItems().remove(selectedRecord);
+phoneBook.getPersonData().remove(selectedRecord);
+recordListCount = phoneBook.getPersonData().size();
+phoneBook.setListSize(recordListCount);
+recordCount.setText("Number of phone book records: " + recordListCount);
+} //If user clicks Cancel button on the alert box, person is not deleted.
+else if (result.get() == cancelButton) {
+}
+}
+}
+//Creates a new empty Phone Book
+public void newPhoneBook() {
+tableView.getItems().clear();
+recordCount.setText("Number of phone book records: 0");
+}
+//Exits the application
+public void exitPhoneBookApp() {
+Platform.exit();
+}
+}
+
+NewRecordController.java
+package phonebookapplication.controller;
+import java.net.URL;
+import java.util.ResourceBundle;
+import java.util.UUID;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
+import javafx.scene.control.TextField;
+import javafx.stage.Stage;
+import phonebookapplication.Person;
+/**
+* FXML Controller class
+*
+* @author Shivi Sahai
+*/
+public class NewRecordController implements Initializable {
+@FXML
+private TextField fname;
+@FXML
+private TextField lname;
+@FXML
+private TextField hphone;
+@FXML
+private TextField wphone;
+@FXML
+private TextField mphone;
+private Stage dialogStage;
+private boolean okClicked = false;
+private Person person;
+//person Setter
+public void setPerson(Person newPerson) {
+this.person = newPerson;
+}
+// dialogStage Setter
+public void setDialogStage(Stage dialogStage) {
+this.dialogStage = dialogStage;
+}
+/**
+* Initializes the controller class.
+*
+* @param url
+* @param rb
+*/
+@Override
+public void initialize(URL url, ResourceBundle rb) {
+// TODO
+}
+//This method returns a boolean value for okClicked
+public boolean isOkClicked() {
+return okClicked;
+}
+//This method is called when user clicks the OK button on the Add New Person dialog box.
+@FXML
+private void addNewRecord(ActionEvent event) {
+//Generating a unique ID for the person which can be used later for performing various functions in future.
+String uID = UUID.randomUUID().toString();
+//Validation for mandatory condition to fill all the fields in the Add New person dialog box.
+if (fname.getText().isEmpty() == true || lname.getText().isEmpty() == true || hphone.getText().isEmpty() == true || wphone.getText().isEmpty() == true || mphone.getText().isEmpty() == true) {
+//If any field is empty in the Add New Person dialog box and user clicks Ok button, a Warning Alert is displayed.
+Alert alert = new Alert(Alert.AlertType.WARNING);
+alert.setTitle("Warning");
+alert.setHeaderText("All fields are mandatory.");
+alert.setContentText("Please fill all the fields to modify the person details");
+alert.showAndWait();
+} else {
+//Sets the values of the Add Person Dialog box in the person
+person.setFirstname(fname.getText());
+person.setLastname(lname.getText());
+person.setHomephone(hphone.getText());
+person.setWorkphone(wphone.getText());
+person.setMobilephone(mphone.getText());
+person.setId(uID);
+okClicked = true;
+dialogStage.close();
+}
+}
+//If user clicks the cancel button on the Add New Person dialog box, dialog Stage is closed.
+public void cancelButton() {
+dialogStage.close();
+}
+}
+
+UpdateRecordController.java
+package phonebookapplication.controller;
+import java.net.URL;
+import java.util.ResourceBundle;
+import java.util.UUID;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
+import javafx.scene.control.TextField;
+import javafx.stage.Stage;
+import phonebookapplication.Person;
+import phonebookapplication.PhoneBookApplication;
+
+/**
+* FXML Controller class
+*
+* @author Shivi Sahai
+*/
+public class UpdateRecordController implements Initializable {
+/**
+* Initializes the controller class.
+*/
+@Override
+public void initialize(URL url, ResourceBundle rb) {
+// TODO
+}
+@FXML
+private TextField fname;
+@FXML
+private TextField lname;
+@FXML
+private TextField hphone;
+@FXML
+private TextField wphone;
+@FXML
+private TextField mphone;
+private Stage dialogStage;
+private boolean okClicked = false;
+private Person person;
+private PhoneBookApplication phoneBook;
+//person Setter
+public void setPerson(Person newPerson) {
+this.person = newPerson;
+}
+//dialogStage Setter
+public void setDialogStage(Stage dialogStage) {
+this.dialogStage = dialogStage;
+}
+//Boolean method
+public boolean isOkClicked() {
+return okClicked;
+}
+//Displays the selected person details in the Modify dialog box.
+public void showPersonDetails(Person person) {
+if (person != null) {
+fname.setText(person.getFirstname());
+lname.setText(person.getLastname());
+hphone.setText(person.getHomephone());
+wphone.setText(person.getWorkphone());
+mphone.setText(person.getMobilephone());
+}
+}
+//This method is called when Ok button is clicked on the Modify Person dialog box
+@FXML
+public void editSelectedRecord(ActionEvent event) {
+String uID = UUID.randomUUID().toString();
+//Validation that all the fields must be filled, if any of the fields is empty, displays a warning alert box.
+if (fname.getText().isEmpty() == true || lname.getText().isEmpty() == true || hphone.getText().isEmpty() == true || wphone.getText().isEmpty() == true || mphone.getText().isEmpty() == true) {
+Alert alert = new Alert(Alert.AlertType.WARNING);
+alert.setTitle("Warning");
+alert.setHeaderText("All fields are mandatory.");
+alert.setContentText("Please fill all the fields to modify the person details");
+alert.showAndWait();
+} //Sets the modified information from the modify person dialog box in the person
+else {
+person.setFirstname(fname.getText());
+person.setLastname(lname.getText());
+person.setHomephone(hphone.getText());
+person.setWorkphone(wphone.getText());
+person.setMobilephone(mphone.getText());
+person.setId(uID);
+okClicked = true;
+dialogStage.close();
+}
+}
+//If Cancel button is clicked on the Modify person dialog box, the dialog Stage Closes.
+public void cancelButton() {
+dialogStage.close();
+}
+}
+
+PhoneBookHome.fxml
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<AnchorPane id="AnchorPane" prefHeight="667.0" prefWidth="851.0" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="phonebookapplication.controller.PhoneBookAppController">
+<children>
+<VBox layoutX="130.0" prefHeight="667.0" prefWidth="874.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+<children>
+<MenuBar fx:id="menubar">
+<menus>
+<Menu mnemonicParsing="false" text="File">
+<items>
+<MenuItem mnemonicParsing="false" onAction="#newPhoneBook" text="New Phone Book" />
+<MenuItem mnemonicParsing="false" onAction="#exitPhoneBookApp" text="Exit" />
+</items>
+</Menu>
+<Menu fx:id="editMenu" mnemonicParsing="false" text="Edit">
+<items>
+<MenuItem fx:id="addMenu" mnemonicParsing="false" onAction="#handleNewPerson" text="Add" />
+<MenuItem mnemonicParsing="false" onAction="#updateRecord" text="Modify" />
+<MenuItem mnemonicParsing="false" onAction="#deleteRecord" text="Delete" />
+</items>
+</Menu>
+</menus>
+</MenuBar>
+<TableView fx:id="tableView" prefHeight="593.0" prefWidth="786.0">
+<columns>
+<TableColumn fx:id="colLastname" minWidth="-Infinity" prefWidth="166.66666162014008" text="Last Name" />
+<TableColumn fx:id="colFirstName" prefWidth="158.6666717529297" text="First Name" />
+<TableColumn fx:id="colHomePhone" prefWidth="164.66665649414062" text="Home Phone" />
+<TableColumn fx:id="colWorkPhone" minWidth="0.0" prefWidth="173.33334350585938" text="Work Phone" />
+<TableColumn fx:id="colMobilePhone" minWidth="0.0" prefWidth="188.66668701171875" text="Mobile Phone" />
+<TableColumn fx:id="colID" editable="false" minWidth="0.0" prefWidth="220.00006103515625" sortable="false" text="ID" visible="false" />
+</columns>
+</TableView>
+<HBox prefHeight="49.0" prefWidth="851.0">
+<children>
+<Label fx:id="recordCount" prefHeight="41.0" prefWidth="855.0" />
+</children>
+</HBox>
+</children>
+</VBox>
+</children>
+</AnchorPane>
+
+NewRecord.fxml
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+<AnchorPane id="AnchorPane" prefHeight="400.0" prefWidth="372.0" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="phonebookapplication.controller.NewRecordController">
+<children>
+<VBox prefHeight="400.0" prefWidth="372.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+<children>
+<HBox alignment="TOP_CENTER" prefHeight="63.0" prefWidth="397.0">
+<children>
+<Label alignment="CENTER" contentDisplay="CENTER" prefHeight="63.0" prefWidth="371.0" text="Enter Phone Book Record Information" textAlignment="CENTER" textOverrun="CENTER_ELLIPSIS">
+<font>
+<Font size="18.0" />
+</font>
+</Label>
+</children>
+</HBox>
+<Separator prefHeight="3.0" prefWidth="323.0">
+<VBox.margin>
+<Insets bottom="10.0" left="50.0" />
+</VBox.margin>
+</Separator>
+<GridPane alignment="CENTER" prefHeight="187.0" prefWidth="367.0">
+<columnConstraints>
+<ColumnConstraints hgrow="SOMETIMES" maxWidth="175.3333740234375" minWidth="10.0" prefWidth="136.66668701171875" />
+<ColumnConstraints hgrow="SOMETIMES" maxWidth="232.0" minWidth="10.0" prefWidth="227.33331298828125" />
+</columnConstraints>
+<rowConstraints>
+<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+</rowConstraints>
+<children>
+<Label alignment="CENTER" prefHeight="47.0" prefWidth="137.0" text="First Name:">
+<font>
+<Font size="14.0" />
+</font>
+</Label>
+<Label alignment="CENTER" prefHeight="47.0" prefWidth="137.0" text="Last Name:" GridPane.rowIndex="1">
+<font>
+<Font size="14.0" />
+</font>
+</Label>
+<Label alignment="CENTER" prefHeight="47.0" prefWidth="137.0" text="Home Phone:" GridPane.rowIndex="2">
+<font>
+<Font size="14.0" />
+</font>
+</Label>
+<Label alignment="CENTER" prefHeight="47.0" prefWidth="137.0" text="Work Phone:" GridPane.rowIndex="3">
+<font>
+<Font size="14.0" />
+</font>
+</Label>
+<Label alignment="CENTER" prefHeight="47.0" prefWidth="137.0" text="Mobile Phone:" GridPane.rowIndex="4">
+<font>
+<Font size="14.0" />
+</font>
+</Label>
+<TextField fx:id="fname" prefHeight="25.0" prefWidth="87.0" promptText="Enter First Name" GridPane.columnIndex="1">
+<GridPane.margin>
+<Insets right="20.0" />
+</GridPane.margin>
+</TextField>
+<TextField fx:id="lname" promptText="Enter Last Name" GridPane.columnIndex="1" GridPane.rowIndex="1">
+<GridPane.margin>
+<Insets right="20.0" />
+</GridPane.margin>
+</TextField>
+<TextField fx:id="hphone" promptText="Enter Home Phone" GridPane.columnIndex="1" GridPane.rowIndex="2">
+<GridPane.margin>
+<Insets right="20.0" />
+</GridPane.margin>
+</TextField>
+<TextField fx:id="wphone" promptText="Enter Work Phone" GridPane.columnIndex="1" GridPane.rowIndex="3">
+<GridPane.margin>
+<Insets right="20.0" />
+</GridPane.margin>
+</TextField>
+<TextField fx:id="mphone" promptText="Enter Mobile Phone" GridPane.columnIndex="1" GridPane.rowIndex="4">
+<GridPane.margin>
+<Insets right="20.0" />
+</GridPane.margin>
+</TextField>
+</children>
+</GridPane>
+<Separator prefHeight="6.0" prefWidth="378.0">
+<VBox.margin>
+<Insets left="50.0" right="20.0" top="10.0" />
+</VBox.margin>
+</Separator>
+<HBox alignment="TOP_RIGHT" prefHeight="84.0" prefWidth="377.0">
+<children>
+<Button mnemonicParsing="false" onAction="#addNewRecord" prefHeight="30.0" prefWidth="70.0" text="OK">
+<HBox.margin>
+<Insets right="10.0" />
+</HBox.margin>
+<font>
+<Font size="14.0" />
+</font>
+</Button>
+<Button mnemonicParsing="false" onAction="#cancelButton" prefHeight="30.0" prefWidth="69.0" text="Cancel">
+<font>
+<Font size="14.0" />
+</font>
+</Button>
+</children>
+<VBox.margin>
+<Insets top="20.0" />
+</VBox.margin>
+</HBox>
+</children>
+<padding>
+<Insets right="40.0" />
+</padding>
+</VBox>
+</children>
+</AnchorPane>
+
+UpdateRecord.fxml
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+<AnchorPane id="AnchorPane" prefHeight="400.0" prefWidth="363.0" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="phonebookapplication.controller.UpdateRecordController">
+<children>
+<VBox prefHeight="400.0" prefWidth="363.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+<children>
+<HBox alignment="TOP_CENTER" prefHeight="65.0" prefWidth="399.0">
+<children>
+<Label alignment="CENTER" contentDisplay="CENTER" prefHeight="65.0" prefWidth="363.0" text="Update Phone Book Record Information" textAlignment="CENTER" textOverrun="CENTER_ELLIPSIS">
+<font>
+<Font size="18.0" />
+</font>
+</Label>
+</children>
+</HBox>
+<Separator prefHeight="3.0" prefWidth="323.0">
+<VBox.margin>
+<Insets bottom="10.0" left="50.0" />
+</VBox.margin>
+</Separator>
+<GridPane alignment="CENTER" prefHeight="187.0" prefWidth="363.0">
+<columnConstraints>
+<ColumnConstraints hgrow="SOMETIMES" maxWidth="175.3333740234375" minWidth="10.0" prefWidth="136.66668701171875" />
+<ColumnConstraints hgrow="SOMETIMES" maxWidth="232.0" minWidth="10.0" prefWidth="227.33331298828125" />
+</columnConstraints>
+<rowConstraints>
+<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+</rowConstraints>
+<children>
+<Label alignment="CENTER" prefHeight="47.0" prefWidth="137.0" text="First Name:">
+<font>
+<Font size="14.0" />
+</font>
+</Label>
+<Label alignment="CENTER" prefHeight="47.0" prefWidth="137.0" text="Last Name:" GridPane.rowIndex="1">
+<font>
+<Font size="14.0" />
+</font>
+</Label>
+<Label alignment="CENTER" prefHeight="47.0" prefWidth="137.0" text="Home Phone:" GridPane.rowIndex="2">
+<font>
+<Font size="14.0" />
+</font>
+</Label>
+<Label alignment="CENTER" prefHeight="47.0" prefWidth="137.0" text="Work Phone:" GridPane.rowIndex="3">
+<font>
+<Font size="14.0" />
+</font>
+</Label>
+<Label alignment="CENTER" prefHeight="47.0" prefWidth="137.0" text="Mobile Phone:" GridPane.rowIndex="4">
+<font>
+<Font size="14.0" />
+</font>
+</Label>
+<TextField fx:id="fname" prefHeight="25.0" prefWidth="87.0" GridPane.columnIndex="1">
+<GridPane.margin>
+<Insets right="20.0" />
+</GridPane.margin>
+</TextField>
+<TextField fx:id="lname" GridPane.columnIndex="1" GridPane.rowIndex="1">
+<GridPane.margin>
+<Insets right="20.0" />
+</GridPane.margin>
+</TextField>
+<TextField fx:id="hphone" GridPane.columnIndex="1" GridPane.rowIndex="2">
+<GridPane.margin>
+<Insets right="20.0" />
+</GridPane.margin>
+</TextField>
+<TextField fx:id="wphone" GridPane.columnIndex="1" GridPane.rowIndex="3">
+<GridPane.margin>
+<Insets right="20.0" />
+</GridPane.margin>
+</TextField>
+<TextField fx:id="mphone" GridPane.columnIndex="1" GridPane.rowIndex="4">
+<GridPane.margin>
+<Insets right="20.0" />
+</GridPane.margin>
+</TextField>
+</children>
+</GridPane>
+<Separator prefHeight="6.0" prefWidth="378.0">
+<VBox.margin>
+<Insets left="50.0" right="20.0" top="10.0" />
+</VBox.margin>
+</Separator>
+<HBox alignment="TOP_RIGHT" prefHeight="84.0" prefWidth="363.0">
+<children>
+<Button mnemonicParsing="false" onAction="#editSelectedRecord" prefHeight="30.0" prefWidth="70.0" text="OK">
+<HBox.margin>
+<Insets right="10.0" />
+</HBox.margin>
+<font>
+<Font size="14.0" />
+</font>
+</Button>
+<Button mnemonicParsing="false" onAction="#cancelButton" prefHeight="30.0" prefWidth="69.0" text="Cancel">
+<font>
+<Font size="14.0" />
+</font>
+</Button>
+</children>
+<VBox.margin>
+<Insets top="20.0" />
+</VBox.margin>
+</HBox>
+</children>
+<padding>
+<Insets right="40.0" />
+</padding>
+</VBox>
+</children>
+</AnchorPane>
